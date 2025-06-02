@@ -274,13 +274,20 @@ class Editer(object):
         page_no = 1 
         url_ori = url
         next_chap_url = None
+
+        # 从外部获取的章节名可能是有规避关键词的，比如"女主角"总是被写成"N主角"，只有在这个url获取到的<h1></h1>中拿到的标题名，才是真的标题名
+        real_chap_name = chap_name
+
         while True:
+
+            content_html = self.get_html(url, is_gbk=False)
             if page_no == 1:
                 str_out = chap_name
+                real_chap_name = content_html.split("<h1>")[1].split("</h1>")[0]
             else:
-                str_out = f'    正在下载第{page_no}页......'
+                str_out = f'    已完成下载第{page_no}页......'
             print(str_out)
-            content_html = self.get_html(url, is_gbk=False)
+
             text = self.get_page_text(content_html)
             text_chap += text
             url_new = url_ori.replace('.html', '_{}.html'.format(page_no+1))[len(self.url_head):]
@@ -291,7 +298,7 @@ class Editer(object):
                 if return_next_chapter:
                     next_chap_url = self.url_head + re.search(r'书签</a><a href="(.*?)">下一页</a>', content_html).group(1)
                 break
-        return text_chap, next_chap_url
+        return text_chap, next_chap_url, real_chap_name
     
     def get_text(self):
         self.make_folder()   
@@ -299,8 +306,11 @@ class Editer(object):
         text_no=0   #text_no正文章节编号(排除插图)   chap_no 是所有章节编号
         for chap_no, (chap_name, chap_url) in enumerate(zip(self.volume['chap_names'], self.volume['chap_urls'])):
             is_fix_next_chap_url = (chap_name in self.missing_last_chap_list)
-            text, next_chap_url = self.get_chap_text(chap_url, chap_name, return_next_chapter=is_fix_next_chap_url)
-            
+            text, next_chap_url, real_chap_name = self.get_chap_text(chap_url, chap_name, return_next_chapter=is_fix_next_chap_url)
+
+            # 从外部获取的章节名可能是有规避关键词的，比如"女主角"总是被写成"N主角"，只有在这个url获取到的<h1></h1>中拿到的标题名，才是真的标题名。所以要在这里根据下标改正
+            # self.volume['chap_names'][chap_no] = real_chap_name
+
             if chap_name == self.color_chap_name:
                 text_html_color = text2htmls(self.color_page_name, text)                
             else:
