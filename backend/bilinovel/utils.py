@@ -174,8 +174,11 @@ def replace_rubbish_text(content_html):
     ps = soup.find_all('p')
     if not ps:
         return str(soup)
-    last_p = ps[-1]
-    text = last_p.get_text()
+    for last_p in reversed(ps):
+        text = last_p.get_text()
+        if text:
+            break
+
     sb = []
     for blank_char in text:
         replace_strr = rubbish_secret_map.get(blank_char)
