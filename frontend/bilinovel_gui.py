@@ -22,19 +22,21 @@ class MainThread(QThread):
         
     def run(self):
         self.parent.clear_signal.emit('')
-        try:
-            book_no = self.parent.editline_book.text()
-            volumn_no = self.parent.editline_volumn.text()
-            out_path = read_config_dict('download_path')
-            interval = read_config_dict('interval')
-            num_thread = read_config_dict('numthread')
-            downloader_router(out_path, book_no, volumn_no, interval, num_thread, True, self.parent.hang_signal, self.parent.progressring_signal, self.parent.cover_signal, self.parent.editline_hang)
-            self.parent.end_signal.emit('')
-        except Exception as e:
-            self.parent.end_signal.emit('')
-            print('错误，请检查网络情况或确认输入是否正确')
-            print('错误信息：')
-            print(e)
+        # try:
+
+        book_no = self.parent.editline_book.text()
+        volumn_no = self.parent.editline_volumn.text()
+        out_path = read_config_dict('download_path')
+        interval = read_config_dict('interval')
+        num_thread = read_config_dict('numthread')
+        downloader_router(out_path, book_no, volumn_no, interval, num_thread, True, self.parent.hang_signal, self.parent.progressring_signal, self.parent.cover_signal, self.parent.editline_hang)
+        self.parent.end_signal.emit('')
+
+        # except Exception as e:
+        #     self.parent.end_signal.emit('')
+        #     print('错误，请检查网络情况或确认输入是否正确')
+        #     print('错误信息：')
+        #     print(e)
     def terminate(self) -> None:
         result = super().terminate()
         return result
