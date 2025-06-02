@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-
+from datetime import datetime
 import requests  # 用来抓取网页的html源码
 from bs4 import BeautifulSoup  # 用于代替正则式 取源码中相应标签中的内容
 import time  # 时间相关操作
@@ -36,7 +36,7 @@ class Editer(object):
         path = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'  # 请改为你电脑内Chrome可执行文件路径
         co = ChromiumOptions().set_browser_path(path)
         self.tab = Chromium(co).latest_tab
-        
+
         main_html = self.get_html(self.main_page)
         self.get_meta_data(main_html)
             
@@ -61,9 +61,10 @@ class Editer(object):
         while True:
             self.tab.get(url)
             req = self.tab.html
-            while '<title>Access denied | www.linovelib.com used Cloudflare to restrict access</title>' in req:
-                print('下载频繁，触发反爬，5秒后重试....')
-                time.sleep(5)
+            re_try_time = 10
+            while '<title>Access denied | www.linovelib.com used Cloudflare to restrict access</title>' in req or "Offscreen Utility Page" in req:
+                print(f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}: 下载频繁，触发反爬，导致无法正确读取{url}的小说信息，需要重新读取{re_try_time}秒后重试....')
+                time.sleep(re_try_time)
                 self.tab.get(url)
                 req = self.tab.html
             if is_gbk:
@@ -202,6 +203,9 @@ class Editer(object):
 
         msg = '<br/><br/><br/>————————————以下为告示，读者请无视——————————————<p>'
         text = text[:text.find(msg)]
+
+        # 轻小说过度换行，导致排版很难看。实际上<p></p>已经具有换行的能力了，不需要<br/>了
+        text = text.replace('''</p>\n<br/>\n<p>''', '''</p>\n<p>''')
 
         #去除乱码
         if is_tansfer_rubbish_code:
