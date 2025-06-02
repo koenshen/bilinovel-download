@@ -96,6 +96,7 @@ class Editer(object):
             time.sleep(self.interval)
         return req
 
+
     # 关闭所有 chrome 浏览器进程
     def kill_chrome_processes(self):
         import psutil
@@ -108,6 +109,7 @@ class Editer(object):
                 except Exception as e:
                     print(f"Could not kill process {proc.pid}: {e}")
         print("already kill all chrome process.")
+
 
     # 手动看看 某个端口是否 有服务在监听
     def is_port_open(self, host, port):
