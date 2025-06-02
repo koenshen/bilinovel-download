@@ -32,10 +32,32 @@ class Editer(object):
         self.color_chap_name = '插图'
         self.color_page_name = '彩页'
         self.html_buffer = dict()
+        path = r'C:\Program Files\Google\Chrome\Application\chrome.exe'  # Chrome 路径
 
-        path = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'  # 请改为你电脑内Chrome可执行文件路径
-        co = ChromiumOptions().set_browser_path(path)
-        self.tab = Chromium(co).latest_tab
+        # 这里为什么要先kill掉？因为不先kill掉，那么在两卷之间下载的时候，由于下一卷需要回到小说首页获取信息时，总是会卡住无法跳转导致只能获取到Offscreen Utility Page的页面，所以需要先kill再重新启动，就能避免这个问题
+        self.kill_chrome_processes()
+        time.sleep(1)
+
+        # 2) 立刻去检查 9222，如果旧的残留在占着，就先报警
+        if self.is_port_open('127.0.0.1', 9222):
+            print("注意：9222 上已有进程，占用状态！")
+
+        # 3) 启动 DrissionPage 去真正 launch Chrome
+        co = ChromiumOptions()
+        co.set_browser_path(path)
+        co.set_argument('--remote-debugging-port=9222')
+        co.set_argument('--no-first-run')
+        co.set_argument('--no-default-browser-check')
+
+        # 4) 给 Chrome 几百毫秒去起服务
+        browser_proc = Chromium(co)  # 这一步内部会去启动 Chrome
+        time.sleep(2)  # 等待 Chrome 监听完 9222
+
+        # 5) 再去连一次
+        if not self.is_port_open('127.0.0.1', 9222):
+            print("Error: Chrome 启动后，9222 依然没有处于监听状态。说明 --remote-debugging-port 并没有生效。")
+
+        self.tab = browser_proc.latest_tab  # 如果上面端口正常，就应该连上了
 
         main_html = self.get_html(self.main_page)
         self.get_meta_data(main_html)
@@ -62,7 +84,7 @@ class Editer(object):
             self.tab.get(url)
             req = self.tab.html
             re_try_time = 10
-            while '<title>Access denied | www.linovelib.com used Cloudflare to restrict access</title>' in req or "Offscreen Utility Page" in req:
+            while '<title>Access denied | www.linovelib.com used Cloudflare to restrict access</title>' in req:
                 print(f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}: 下载频繁，触发反爬，导致无法正确读取{url}的小说信息，需要重新读取{re_try_time}秒后重试....')
                 time.sleep(re_try_time)
                 self.tab.get(url)
@@ -73,7 +95,32 @@ class Editer(object):
         if self.interval>0:
             time.sleep(self.interval)
         return req
-    
+
+    # 关闭所有 chrome 浏览器进程
+    def kill_chrome_processes(self):
+        import psutil
+        for proc in psutil.process_iter(['name']):
+            # 判断进程名是否为 chrome（即 chrome.exe）
+            if proc.info['name'] and 'chrome' in proc.info['name'].lower():
+                try:
+                    proc.kill()
+                    # print(f"Killed process: {proc.pid} - {proc.info['name']}")
+                except Exception as e:
+                    print(f"Could not kill process {proc.pid}: {e}")
+        print("already kill all chrome process.")
+
+    # 手动看看 某个端口是否 有服务在监听
+    def is_port_open(self, host, port):
+        import socket, time
+        s = socket.socket()
+        s.settimeout(0.5)
+        try:
+            s.connect((host, port))
+            s.close()
+            return True
+        except:
+            return False
+
     def get_html_content(self, url, is_buffer=False):
         if is_buffer:
             while not url in self.html_buffer.keys():
