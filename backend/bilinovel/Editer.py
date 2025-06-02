@@ -353,16 +353,19 @@ class Editer(object):
             return True
         
     def hand_in_msg(self, error_msg='', is_gui=False, signal=None, editline=None):
-        if is_gui:
-            print(error_msg)
-            signal.emit('hang')
-            time.sleep(1)
-            while not editline.isHidden():
-                time.sleep(1)
-            content = editline.text()
-            editline.clear()
-        else:
-            content = input(error_msg)
+        # if is_gui:
+        #     print(error_msg)
+        #     signal.emit('hang')
+        #     time.sleep(1)
+        #     while not editline.isHidden():
+        #         time.sleep(1)
+        #     content = editline.text()
+        #     editline.clear()
+        # else:
+        #     content = input(error_msg)
+
+        # 该功能是为了处理哔哩轻小说的某一卷没有最开始的插图或彩页而处理的，然而我发现如果本身就没插图还要强行选择只会出现一个无法显示图片的标志，还不如一开始就是为空！
+        content = ""
         return content
             
     def hand_in_url(self, chap_name, is_gui=False, signal=None, editline=None):
