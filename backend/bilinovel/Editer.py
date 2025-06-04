@@ -466,7 +466,15 @@ class Editer(object):
             f.write('application/epub+zip')
 
     def get_epub(self):
-        epub_file = self.epub_path + '/' + check_chars(self.book_name + '-' + self.volume['volume_name']) + '.epub'
+
+        # 检查卷名是否已包含书名，如果包含则只用卷名
+        # epub_file = self.epub_path + '/' + check_chars(self.book_name + '-' + self.volume['volume_name']) + '.epub'
+        if self.book_name in self.volume['volume_name']:
+            filename = self.volume['volume_name']
+        else:
+            filename = self.book_name + '-' + self.volume['volume_name']
+        epub_file = self.epub_path + '/' + check_chars(filename) + '.epub'
+
         with zipfile.ZipFile(epub_file, "w", zipfile.ZIP_DEFLATED) as zf:
             for dirpath, _, filenames in os.walk(self.temp_path):
                 fpath = dirpath.replace(self.temp_path,'') #这一句很重要，不replace的话，就从根目录开始复制
