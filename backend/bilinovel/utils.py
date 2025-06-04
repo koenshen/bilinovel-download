@@ -35,7 +35,24 @@ def text2htmls(chap_name, text):
 <!--?xml version="1.0" encoding="UTF-8" standalone="no"?--><html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>{chap_name}</title>
-    <style>p {{ text-indent: 2em; }}</style>
+    <style>
+        /* 页面默认设置 */
+        body {{
+            margin-top: -60px;
+            margin-bottom: -60px;
+            margin-left: -70px;
+            margin-right: -70px;
+        }}
+        
+        /*正文段落缺省格式*/
+        p {{
+            text-indent: 2em;    /* 首行缩进 */
+            line-height: 100%;   /* 行距 */
+            text-align: justify; /* 文本对齐方式 */
+            margin-top: 0em;     /* 段落间距 */
+            margin-bottom: 0.5em;
+        }}
+    </style>
 </head>
 <body>
 <h1>{chap_name}</h1>
