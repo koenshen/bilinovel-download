@@ -37,12 +37,12 @@ def text2htmls(chap_name, text):
     <title>{chap_name}</title>
     <style>
         /* 页面默认设置 */
-        body {{
-            margin-top: -60px;
-            margin-bottom: -60px;
-            margin-left: -70px;
-            margin-right: -70px;
-        }}
+        html {{
+                margin-top: -60px;   /* 面对轻小说时用-60，但是对于从z-lib下载的书则要改为-50，不然会超出kindle的上界限 */
+                margin-bottom: -80px;
+                margin-left: -55px;
+                margin-right: -55px;
+         }}
         
         /*正文段落缺省格式*/
         p {{
@@ -141,11 +141,12 @@ def get_content_html(book_name, volume_name, volume_no, author, publisher, brief
 
     xcolor = '    <item id="xcolor" href="Text/color.xhtml" media-type="application/xhtml+xml"/>\n' if img_exist else ''
     spine_xcolor = '    <itemref idref="xcolor"/>\n' if img_exist else ''
-
+    if book_name not in volume_name:
+        volume_name = book_name+'-'+volume_name
     return content_html_template.format(
         series_name=book_name,
         series_no = volume_no,
-        title=book_name+'-'+volume_name,
+        title=volume_name,
         author=author,
         publisher=publisher,
         brief = brief,
